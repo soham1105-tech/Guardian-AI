@@ -38,7 +38,26 @@ Allowed values only: **Low Risk, Suspicious, High Risk, Confirmed Malicious, Inc
 ## Caveats
 
 - Live threat-intel/network results can vary by provider availability and time; Prompt 8b ensures a single-vendor flag is informational and cannot produce a false Confirmed Malicious.
-- On-chain register/verify above used the **local Hardhat** chain (31337). A manual Sepolia deployment (real contract address + Etherscan tx) is a user action — see README and `DEPLOY.md`.
+- On-chain register/verify was first proven on the local Hardhat chain (31337); Sepolia is now live (see below) and the hosted backend registers on Sepolia.
 - Browser console/network visual checks (zero errors, empty/loading/error states) were not captured as screenshots in this run; the UI includes busy/disabled submit states and error messaging — verify in a browser with backend+frontend+Hardhat running before demo/submission.
 
-- Sepolia register verified live (Prompt 9b): tx `0x9f592ba27b26ce990bc47ff3f0a5032b158dcb249b98b0ab8aceb50f8c2e4f2e`, https://sepolia.etherscan.io/tx/0x9f592ba27b26ce990bc47ff3f0a5032b158dcb249b98b0ab8aceb50f8c2e4f2e (contract `0x8d752efC39D306FDF6482CA7686280704A1D480C`, chain_id 11155111, register returned tx_hash/etherscan_url, exists=true).
+- Sepolia verified live (Prompt 9b): deployment tx `0x5c98491f51012dc81bad0c012303c90f6d01406ec46d1df3203de69ece6a94c0` (https://sepolia.etherscan.io/tx/0x5c98491f51012dc81bad0c012303c90f6d01406ec46d1df3203de69ece6a94c0); register tx `0x9f592ba27b26ce990bc47ff3f0a5032b158dcb249b98b0ab8aceb50f8c2e4f2e` (https://sepolia.etherscan.io/tx/0x9f592ba27b26ce990bc47ff3f0a5032b158dcb249b98b0ab8aceb50f8c2e4f2e). Contract `0x8d752efC39D306FDF6482CA7686280704A1D480C`, `chain_id` 11155111, register returned `tx_hash`/`etherscan_url`, `exists=true`.
+
+
+## Hosted verification (live)
+
+_Run: 2026-11-09 (evening, UTC log). Target: `https://guardian-ai-backend-sqgq.onrender.com` (live on Render). Warmed with `GET /` → 200 before tests. Results are real API responses; verdicts/risk classes reflect live system behavior at test time._
+
+| # | Case | Endpoint / input | Expected (per Prompt 10) | Actual (live) | Time | Result |
+|---|------|------------------|--------------------------|---------------|------|--------|
+| 1 | Google | `POST /api/investigate` `{"url":"https://www.google.com"}` | Low Risk, 0.0 | **Low Risk, score 0.0** (id `41346305-3465-4262-9e28-a9409ae7660c`) | 8.59s | PASS |
+| 2 | Phishing test page | `POST /api/investigate` `{"url":"https://testsafebrowsing.appspot.com/s/phishing.html"}` | Confirmed Malicious (10.0) | **High Risk, score 6.5** (id `d299ff5f-5df3-4882-9255-f075c9daa603`) — retry: **High Risk, 6.5** (id `ae2a80b8-e831-42ee-b9fd-1b591d5ea684`, 8.78s) | 9.35s | **MISMATCH** (expected Confirmed Malicious 10.0; actual High Risk 6.5 on two runs) |
+| 3 | Homograph (Cyrillic `а` U+0430) | `POST /api/investigate` `{"url":"https://аpple.com"}` | Confirmed Malicious + homograph indicator | **High Risk, score 5.8, homograph indicator detected** (id `314ae201-4e8f-47d4-b175-bef2c632a872`) — retry: **High Risk, 5.8, homograph indicator true** (id `93763d59-fba2-48e1-a9ea-1eec820f0f5e`, 3.78s) | 2.00s | **MISMATCH** (expected Confirmed Malicious; actual High Risk 5.8 with homograph indicator present on two runs) |
+| 4 | SBI KYC SMS | `POST /api/analyze-message` (SBI block/KYC text + `http://sbi-kyc-verify.xyz/login`) | High Risk (7.9) | **High Risk, score 7.9** (id `ee49c845-3a1e-477c-b143-7aa6a9339ae6`) | 2.62s | PASS |
+| 5 | SBI official | `POST /api/investigate` `{"url":"https://www.sbi.co.in"}` | Low Risk, 0.0 | **Low Risk, score 0.0** (id `cc4746c7-75c3-4548-98da-7dff2f6af05f`) | 10.83s | PASS |
+
+**Register/verify (Sepolia, using phishing report id `d299ff5f-5df3-4882-9255-f075c9daa603`):**
+- `POST /api/reports/d299ff5f-5df3-4882-9255-f075c9daa603/register` (7.87s): `tx_hash=0x0d47e1a5da305879ff052d38ecbc30c1e338357731e89cbcf0b7e47c7a00fdbf`, `contract_address=0x8d752efC39D306FDF6482CA7686280704A1D480C`, `chain_id=11155111`, `etherscan_url=https://sepolia.etherscan.io/tx/0x0d47e1a5da305879ff052d38ecbc30c1e338357731e89cbcf0b7e47c7a00fdbf`, `already_registered=false`, `exists=false` (tx submitted), `error=null`.
+- `GET /api/reports/d299ff5f-5df3-4882-9255-f075c9daa603/verify` (immediate, 1.10s): `exists=false` (not yet confirmed). Retry after ~25s: **`exists=true`**, `contract_address=0x8d752efC39D306FDF6482CA7686280704A1D480C`, `chain_id=11155111`, `error=null`. **Recorded tx hash:** `0x0d47e1a5da305879ff052d38ecbc30c1e338357731e89cbcf0b7e47c7a00fdbf` (Sepolia, from register response).
+
+**Latency (step 13):** google.com investigate measured **8.59s** on warm backend (<30s) — no latency change attempted. (Earlier cold/first-call observation was ~52s; warm backend before demo.)
