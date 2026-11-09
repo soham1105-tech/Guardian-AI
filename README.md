@@ -98,7 +98,8 @@ See [TESTING.md](TESTING.md) for actual results.
 
 ## Web3 verification
 
-- **Sepolia (testnet, live / verified):** `chain_id=11155111`, contract **`0x8d752efC39D306FDF6482CA7686280704A1D480C`** — [Etherscan (address)](https://sepolia.etherscan.io/address/0x8d752efC39D306FDF6482CA7686280704A1D480C). **Deployment transaction hash:** TODO — not present in `backend/contract.json` (do not invent); verify the contract at the Etherscan address link above. **Verified register tx (live, this repo):** `0x9f592ba27b26ce990bc47ff3f0a5032b158dcb249b98b0ab8aceb50f8c2e4f2e` — [Etherscan (tx)](https://sepolia.etherscan.io/tx/0x9f592ba27b26ce990bc47ff3f0a5032b158dcb249b98b0ab8aceb50f8c2e4f2e) (`contract_address` matches, `chain_id` 11155111, report registered/verified). Configure backend `WEB3_RPC_URL`/`PRIVATE_KEY` on the host (Render dashboard) — never commit keys.
+- **Sepolia (testnet, live / verified):** `chain_id=11155111`, contract **`0x8d752efC39D306FDF6482CA7686280704A1D480C`** — [Etherscan (address)](https://sepolia.etherscan.io/address/0x8d752efC39D306FDF6482CA7686280704A1D480C). **Deployment tx**: `0x5c98491f51012dc81bad0c012303c90f6d01406ec46d1df3203de69ece6a94c0`
+(https://sepolia.etherscan.io/tx/0x5c98491f51012dc81bad0c012303c90f6d01406ec46d1df3203de69ece6a94c0) — [Etherscan (tx)](https://sepolia.etherscan.io/tx/0x9f592ba27b26ce990bc47ff3f0a5032b158dcb249b98b0ab8aceb50f8c2e4f2e) (`contract_address` matches, `chain_id` 11155111, report registered/verified). Configure backend `WEB3_RPC_URL`/`PRIVATE_KEY` on the host (Render dashboard) — never commit keys.
 - **Local (reproducible dev demo):** Hardhat `localhost`, `chain_id=31337`, contract `0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9` (local deploy). Sample register tx `0x781240ba01ff5b134e2de6e32a876309f2591debd37817a84627e7a0d6657749`; local chain hashes are not Etherscan-verifiable.
 
 ## Documentation & demo
