@@ -8,3 +8,4 @@ httpx
 web3
 # DNS resolution (imported as dns)
 dnspython
+cryptography
