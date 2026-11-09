@@ -2,7 +2,8 @@
   "name": "guardian-ai-frontend",
   "private": true,
   "version": "0.0.0",
-  "type": "module",\n  "author": "Team CodeScorpio",
+  "type": "module",
+  "author": "Team CodeScorpio",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
