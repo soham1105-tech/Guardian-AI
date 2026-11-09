@@ -1,0 +1,39 @@
+From: hr@yourcompany-portal.net
+To: you@yourcompany.com
+Subject: Confidential: Updated salary structure =?utf-8?b?4oCU?= action
+ required
+Date: Sat, 22 Aug 2026 08:57:07 +0000
+Return-Path: noreply@yourcompany-portal.net
+Authentication-Results: mx.google.com; spf=fail
+ smtp.mailfrom=yourcompany-portal.net; dkim=fail
+ header.i=@yourcompany-portal.net; dmarc=fail
+ header.from=yourcompany-portal.net
+Received: from mail.yourcompany-portal.net (mail.yourcompany-portal.net
+ [193.42.33.101]) by mx.google.com with SMTP
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============2342216127282086079=="
+
+--===============2342216127282086079==
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Hello,
+
+Please find attached the updated confidential salary structure document. This=
+ must be reviewed and confirmed immediately =E2=80=94 do not forward this ema=
+il.
+
+Open the attached archive and run the enclosed file to view the document.
+
+HR Department
+
+--===============2342216127282086079==
+Content-Type: application/zip
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="Salary_Structure_2026.zip"
+MIME-Version: 1.0
+
+UEsgZHVtbXkgemlwIHBsYWNlaG9sZGVyIGNvbnRlbnQgZm9yIHRlc3RpbmcgYXJjaGl2ZSBhdHRh
+Y2htZW50IGRldGVjdGlvbiBvbmx5Lg==
+
+--===============2342216127282086079==--

@@ -1,0 +1,24 @@
+From: newsletter@company-updates.com
+To: you@yourcompany.com
+Subject: Your Monthly Team Newsletter =?utf-8?b?4oCU?= August 2026
+Date: Sat, 22 Aug 2026 08:57:06 +0000
+Return-Path: newsletter@company-updates.com
+Reply-To: hr@company-updates.com
+Authentication-Results: mx.google.com; spf=pass
+ smtp.mailfrom=company-updates.com; dkim=pass header.i=@company-updates.com;
+ dmarc=pass header.from=company-updates.com
+Received: from mail.company-updates.com (mail.company-updates.com
+ [104.18.10.20]) by mx.google.com with ESMTPS
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+
+Hi team,
+
+Here is a quick roundup of what happened this month:
+- Q3 planning is underway
+- New office snacks have arrived
+- Team offsite scheduled for next month
+
+Thanks,
+HR Team

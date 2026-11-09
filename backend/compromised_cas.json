@@ -1,0 +1,17 @@
+{
+  "_comment": "Certificate authorities whose names must never appear in the issuer field of a certificate presented for a link under investigation. Matching is a case-insensitive substring test against every issuer attribute (O, OU, CN) and the full RFC4514 issuer string, so a leaf or intermediate issued under any of these names is flagged.",
+  "distrusted_cas": [
+    {
+      "name": "DigiNotar",
+      "reason": "Dutch CA breached in 2011; rogue certificates were issued for major domains and the root was removed from trust stores."
+    },
+    {
+      "name": "eMudhra",
+      "reason": "Indian CA repeatedly implicated in certificates issued for look-alike financial and government domains; treated as distrusted by this tool."
+    },
+    {
+      "name": "Symantec",
+      "reason": "Symantec/GeoTrust/Thawte/VeriSign root programme was distrusted by browsers after mis-issuance incidents; legacy chains are treated as compromised."
+    }
+  ]
+}

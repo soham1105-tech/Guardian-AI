@@ -1,0 +1,24 @@
+From: security@microsoft.com
+To: you@yourcompany.com
+Subject: Unusual sign-in activity detected on your account
+Date: Sat, 22 Aug 2026 08:57:07 +0000
+Return-Path: bounce@notify-alerts-secure.net
+Reply-To: no-reply@notify-alerts-secure.net
+Authentication-Results: mx.google.com; spf=fail
+ smtp.mailfrom=notify-alerts-secure.net; dkim=fail
+ header.i=@notify-alerts-secure.net; dmarc=fail header.from=microsoft.com
+Received: from unknown (185.220.101.45) by mx.google.com with SMTP
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Dear User,
+
+We detected unusual sign-in activity on your Microsoft account. Your account =
+will be suspended in 24 hours unless you verify your identity.
+
+Verify now: https://login-microsoft-security.example-verify.net/verify
+
+Failure to act immediately may result in permanent account suspension.
+
+Microsoft Account Team

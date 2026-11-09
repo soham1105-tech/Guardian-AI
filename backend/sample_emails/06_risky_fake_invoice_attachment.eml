@@ -1,0 +1,38 @@
+From: billing@vendor-invoices-co.com
+To: you@yourcompany.com
+Subject: Invoice #48213 =?utf-8?b?4oCU?= Payment overdue, please review
+Date: Sat, 22 Aug 2026 08:57:07 +0000
+Return-Path: billing@vendor-invoices-co.com
+Authentication-Results: mx.google.com; spf=fail
+ smtp.mailfrom=vendor-invoices-co.com; dkim=fail
+ header.i=@vendor-invoices-co.com; dmarc=fail
+ header.from=vendor-invoices-co.com
+Received: from mail.vendor-invoices-co.com (mail.vendor-invoices-co.com
+ [91.243.85.12]) by mx.google.com with SMTP
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============0856361029165589861=="
+
+--===============0856361029165589861==
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Dear Customer,
+
+Your invoice #48213 is overdue. Please review the attached document and proce=
+ss payment immediately to avoid late fees.
+
+Attached: Invoice_48213.pdf
+
+Regards,
+Billing Department
+
+--===============0856361029165589861==
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="Invoice_48213.pdf.exe"
+MIME-Version: 1.0
+
+VGhpcyBpcyBhIGR1bW15IHBsYWNlaG9sZGVyIGZpbGUgZm9yIHRlc3RpbmcgYXR0YWNobWVudCBh
+bmFseXNpcy4gTm90IGEgcmVhbCBleGVjdXRhYmxlLg==
+
+--===============0856361029165589861==--

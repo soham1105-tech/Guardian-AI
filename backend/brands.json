@@ -1,0 +1,66 @@
+{
+  "_comment": "Brand list used for typosquatting, brand-impersonation and suspicious-TLD heuristics. 'official_domains' are the registered domains a brand legitimately uses; anything else mentioning the brand token is treated as potential impersonation.",
+  "suspicious_tlds": ["xyz", "top", "click", "buzz", "online", "shop", "site", "live", "icu", "rest", "monster", "cam", "fit", "cfd", "sbs", "work", "link", "zip", "mov"],
+  "brands": [
+    {
+      "name": "sbi",
+      "tokens": ["sbi", "statebank", "statebankofindia", "onlinesbi", "sbicard", "yono"],
+      "official_domains": ["sbi.co.in", "onlinesbi.sbi", "sbicard.com", "sbiyono.sbi"]
+    },
+    {
+      "name": "hdfcbank",
+      "tokens": ["hdfc", "hdfcbank", "hdfcnetbanking"],
+      "official_domains": ["hdfcbank.com", "hdfc.com", "hdfcbank.net"]
+    },
+    {
+      "name": "icicibank",
+      "tokens": ["icici", "icicibank", "icicinetbanking"],
+      "official_domains": ["icicibank.com", "icici.com", "icicibank.co.in"]
+    },
+    {
+      "name": "paytm",
+      "tokens": ["paytm", "paytmmall", "paytmpayments"],
+      "official_domains": ["paytm.com", "paytmbank.com", "paytmmall.com"]
+    },
+    {
+      "name": "google",
+      "tokens": ["google", "gmail", "googledrive", "youtube"],
+      "official_domains": ["google.com", "gmail.com", "google.co.in", "youtube.com", "youtu.be", "youtube-nocookie.com", "ytimg.com", "googleapis.com", "googleusercontent.com"]
+    },
+    {
+      "name": "apple",
+      "tokens": ["apple", "appleid", "icloud"],
+      "official_domains": ["apple.com", "icloud.com", "apple.co.in"]
+    },
+    {
+      "name": "amazon",
+      "tokens": ["amazon", "amazonpay", "aws"],
+      "official_domains": ["amazon.com", "amazon.in", "amazon.co.uk", "amazonpay.com", "aws.amazon.com", "media-amazon.com"]
+    },
+    {
+      "name": "irctc",
+      "tokens": ["irctc", "indianrail", "indianrailways"],
+      "official_domains": ["irctc.co.in", "irctc.com", "indianrail.gov.in", "indianrailways.gov.in"]
+    },
+    {
+      "name": "facebook",
+      "tokens": ["facebook", "fb", "messenger"],
+      "official_domains": ["facebook.com", "fb.com", "messenger.com", "fbcdn.net"]
+    },
+    {
+      "name": "instagram",
+      "tokens": ["instagram", "insta"],
+      "official_domains": ["instagram.com", "cdninstagram.com", "instagr.am"]
+    },
+    {
+      "name": "whatsapp",
+      "tokens": ["whatsapp", "wa"],
+      "official_domains": ["whatsapp.com", "wa.me", "whatsapp.net"]
+    },
+    {
+      "name": "netflix",
+      "tokens": ["netflix", "netflixpayments"],
+      "official_domains": ["netflix.com", "netflix.net", "nflxext.com", "nflximg.net"]
+    }
+  ]
+}

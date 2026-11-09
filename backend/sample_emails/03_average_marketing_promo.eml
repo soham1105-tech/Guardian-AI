@@ -1,0 +1,22 @@
+From: deals@shopquick-store.com
+To: you@yourcompany.com
+Subject: Limited time offer =?utf-8?b?4oCU?= 20% off your next order!
+Date: Sat, 22 Aug 2026 08:57:07 +0000
+Return-Path: bounce@mailer3.shopquick-store.com
+Authentication-Results: mx.google.com; spf=neutral
+ smtp.mailfrom=shopquick-store.com; dkim=pass header.i=@shopquick-store.com;
+ dmarc=pass header.from=shopquick-store.com
+Received: from mailer3.shopquick-store.com (mailer3.shopquick-store.com
+ [198.51.100.44]) by mx.google.com with ESMTPS
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+
+Hey there,
+
+Act now! Get 20% off site-wide for a limited time only.
+Click here to shop: https://shopquick-store.com/deals?ref=email0820
+
+Offer ends soon.
+
+ShopQuick Team
