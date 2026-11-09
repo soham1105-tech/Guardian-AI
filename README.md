@@ -1,4 +1,3 @@
-<!-- Attribution (kept per project instructions): Originally forked from sarveshdabke/PhishGuard-AI — MIT license notices preserved in git history. -->
 <div align="center">
 
 # Guardian.AI
