@@ -11,5 +11,4 @@ jobs:
     steps:
       - name: Ping Render backend health endpoint
         run: |
-          # Render hostname retained (actual deployed service); branding updated.
-          curl -sf https://phishguard-ai-backend-hoah.onrender.com/ || echo "Ping failed, Guardian.AI backend may be cold-starting"
+          curl -sf https://guardian-ai-backend.onrender.com/ || echo "Ping failed, Guardian.AI backend may be cold-starting"

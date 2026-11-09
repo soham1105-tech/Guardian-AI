@@ -9,9 +9,13 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=flat&logo=vite&logoColor=white)](https://vite.dev/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](#license)
 
 </div>
+
+## Live demo
+
+- **Backend (Render):** `https://guardian-ai-backend.onrender.com` — deploying via Prompt 9 (planned hostname; correct it if the actual Render service name differs).
+- **Frontend (Vercel):** TODO — add the Vercel URL after the frontend deploy.
 
 ## What the product does
 
@@ -94,14 +98,8 @@ See [TESTING.md](TESTING.md) for actual results.
 
 ## Web3 verification
 
-- **Local (reproducible demo, verified):** Hardhat `localhost`, `chain_id=31337`, contract `0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9` (from local deploy). Register tx (sample): `0x781240ba01ff5b134e2de6e32a876309f2591debd37817a84627e7a0d6657749`; verify returned `exists=true` with matching verdict/submitter/timestamp. Local chain addresses/tx hashes are not Etherscan-verifiable.
-- **Sepolia (testnet): TODO — manual deploy not run in this environment.** Run:
-  ```bash
-  cd blockchain
-  # create blockchain/.env from blockchain/.env.example (SEPOLIA_RPC_URL, PRIVATE_KEY with test ETH) — never commit
-  npx hardhat run scripts/deploy.js --network sepolia
-  ```
-  Record the **Sepolia contract address** and deployment/registration **transaction hash**, verify at `https://sepolia.etherscan.io/address/<CONTRACT_ADDRESS>` and `https://sepolia.etherscan.io/tx/<TX_HASH>`, then update this section and configure backend `WEB3_RPC_URL`/`PRIVATE_KEY` on the host (Render dashboard). Do **not** invent an address or tx hash.
+- **Sepolia (testnet, live / verified):** `chain_id=11155111`, contract **`0x8d752efC39D306FDF6482CA7686280704A1D480C`** — [Etherscan (address)](https://sepolia.etherscan.io/address/0x8d752efC39D306FDF6482CA7686280704A1D480C). **Deployment transaction hash:** TODO — not present in `backend/contract.json` (do not invent); verify the contract at the Etherscan address link above. **Verified register tx (live, this repo):** `0x9f592ba27b26ce990bc47ff3f0a5032b158dcb249b98b0ab8aceb50f8c2e4f2e` — [Etherscan (tx)](https://sepolia.etherscan.io/tx/0x9f592ba27b26ce990bc47ff3f0a5032b158dcb249b98b0ab8aceb50f8c2e4f2e) (`contract_address` matches, `chain_id` 11155111, report registered/verified). Configure backend `WEB3_RPC_URL`/`PRIVATE_KEY` on the host (Render dashboard) — never commit keys.
+- **Local (reproducible dev demo):** Hardhat `localhost`, `chain_id=31337`, contract `0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9` (local deploy). Sample register tx `0x781240ba01ff5b134e2de6e32a876309f2591debd37817a84627e7a0d6657749`; local chain hashes are not Etherscan-verifiable.
 
 ## Documentation & demo
 
@@ -110,7 +108,3 @@ See [TESTING.md](TESTING.md) for actual results.
 - [SUBMISSION_CHECKLIST.md](SUBMISSION_CHECKLIST.md) — HackMatrix deliverables/status (check dashboard for exact format)
 - [DEPLOY.md](DEPLOY.md) — Vercel/Render/Sepolia deployment notes
 - [Project Theory Document](docs/PhishGuard_AI_Project_Theory.docx) (legacy filename retained; do not rename files/routes)
-
-## License
-
-MIT — see git history and repository notices. This repository’s fork/origin attribution is preserved in the top-of-file comment above (kept per project instructions).

@@ -113,6 +113,8 @@ def _fake_chain(monkeypatch, store=None):
                         lambda: {"address": ADDRESS, "abi": [], "chain_id": 31337})
     monkeypatch.setattr(web3_registry, "_connect", lambda: _FakeW3())
     monkeypatch.setattr(web3_registry, "_contract", lambda w3, dep: contract)
+    # Hermetic tests use the faked unlocked-account path (not a real PRIVATE_KEY from env).
+    monkeypatch.setattr(web3_registry, "_private_key", lambda: None)
     return functions
 
 

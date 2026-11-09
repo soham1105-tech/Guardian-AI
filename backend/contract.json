@@ -1,8 +1,8 @@
 {
-  "address": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
-  "chain_id": 31337,
-  "network": "localhost",
-  "deployed_at": "2026-11-09T05:50:07.196Z",
+  "address": "0x8d752efC39D306FDF6482CA7686280704A1D480C",
+  "chain_id": 11155111,
+  "network": "sepolia",
+  "deployed_at": "2026-11-09T13:30:15.306Z",
   "abi": [
     {
       "inputs": [

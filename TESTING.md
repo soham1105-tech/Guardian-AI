@@ -40,3 +40,5 @@ Allowed values only: **Low Risk, Suspicious, High Risk, Confirmed Malicious, Inc
 - Live threat-intel/network results can vary by provider availability and time; Prompt 8b ensures a single-vendor flag is informational and cannot produce a false Confirmed Malicious.
 - On-chain register/verify above used the **local Hardhat** chain (31337). A manual Sepolia deployment (real contract address + Etherscan tx) is a user action — see README and `DEPLOY.md`.
 - Browser console/network visual checks (zero errors, empty/loading/error states) were not captured as screenshots in this run; the UI includes busy/disabled submit states and error messaging — verify in a browser with backend+frontend+Hardhat running before demo/submission.
+
+- Sepolia register verified live (Prompt 9b): tx `0x9f592ba27b26ce990bc47ff3f0a5032b158dcb249b98b0ab8aceb50f8c2e4f2e`, https://sepolia.etherscan.io/tx/0x9f592ba27b26ce990bc47ff3f0a5032b158dcb249b98b0ab8aceb50f8c2e4f2e (contract `0x8d752efC39D306FDF6482CA7686280704A1D480C`, chain_id 11155111, register returned tx_hash/etherscan_url, exists=true).
