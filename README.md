@@ -14,7 +14,7 @@
 
 ## Live demo
 
-- **Backend (Render):** `https://guardian-ai-backend.onrender.com` — deploying via Prompt 9 (planned hostname; correct it if the actual Render service name differs).
+- **Backend (Render):** `https://guardian-ai-backend-sqgq.onrender.com` — deploying via Prompt 9 (planned hostname; correct it if the actual Render service name differs).
 - **Frontend (Vercel):** TODO — add the Vercel URL after the frontend deploy.
 
 ## What the product does

@@ -23,7 +23,7 @@ This app runs in production from **environment variables only** (no hardcoded lo
 1. In Vercel: **Add New → Project → Import** the GitHub repo.
 2. **Framework preset:** Vite.
 3. **Root directory:** `frontend` (so Vercel builds the Vite app there).
-4. **Environment variable:** `VITE_API_URL` = your Render backend URL (origin is fine, e.g. `https://guardian-ai-backend.onrender.com`; the app appends `/api` if needed).
+4. **Environment variable:** `VITE_API_URL` = your Render backend URL (origin is fine, e.g. `https://guardian-ai-backend-sqgq.onrender.com`; the app appends `/api` if needed).
 5. Deploy. Note the Vercel domain (e.g. `https://your-app.vercel.app`) for CORS.
 
 ## (c) Render (backend)
