@@ -11,6 +11,8 @@ class IOCVerdict:
     confidence: int        # 0-100
     detail: str
     checked: bool = True   # False if the provider call failed/unavailable
+    vendor_count: int | None = None  # independent vendor/flag/scan count, when reported
+    qualifying: bool | None = None   # counts as TI evidence (set by provider/aggregation)
 
 
 class ThreatIntelProvider(ABC):

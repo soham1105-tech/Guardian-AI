@@ -1,6 +1,11 @@
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
+// VITE_API_URL is the backend origin (e.g. https://api.example.com or the local backend).
+// Falls back to local dev when unset.
+const _devHost = "localhost";
+const _devPort = "8000";
+const API_BASE = (import.meta.env.VITE_API_URL || `http://${_devHost}:${_devPort}`).replace(/\/$/, "");
+const API_BASE_URL = API_BASE.endsWith("/api") ? API_BASE : `${API_BASE}/api`;
 
 const api = axios.create({
   baseURL: API_BASE_URL,

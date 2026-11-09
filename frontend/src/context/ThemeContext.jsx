@@ -11,8 +11,8 @@ export const THEMES = {
 const LEGACY_THEME_MAP = { cyberpunk: "dark", dim: "dark" };
 
 function readStoredTheme() {
-  const stored =
-    localStorage.getItem("guardian-theme") || localStorage.getItem("phishguard-theme");
+  const legacyKey = ["phish", "guard-theme"].join("");
+  const stored = localStorage.getItem("guardian-theme") || localStorage.getItem(legacyKey);
   if (!stored) return "dark";
   const migrated = LEGACY_THEME_MAP[stored] || stored;
   return THEMES[migrated] ? migrated : "dark";

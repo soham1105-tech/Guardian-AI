@@ -1,5 +1,6 @@
 import httpx
 
+from app.config import settings
 from .base import ThreatIntelProvider, IOCVerdict
 
 
@@ -16,9 +17,13 @@ class URLhausProvider(ThreatIntelProvider):
         if not self.supports(ioc_type):
             return self._unavailable(ioc_type, value, "unsupported IOC type")
 
+        headers = {}
+        if settings.URLHAUS_API_KEY:
+            headers["Auth-Key"] = settings.URLHAUS_API_KEY
+
         try:
             async with httpx.AsyncClient(timeout=10) as client:
-                resp = await client.post(self.BASE_URL, data={"url": value})
+                resp = await client.post(self.BASE_URL, data={"url": value}, headers=headers)
             resp.raise_for_status()
             data = resp.json()
 
@@ -28,8 +33,8 @@ class URLhausProvider(ThreatIntelProvider):
             threat = data.get("threat", "malware_download")
             status = data.get("url_status", "unknown")
             detail = f"Listed in URLhaus as '{threat}' (status: {status})"
-
-            return IOCVerdict(self.name, ioc_type, value, True, 90, detail)
+            # No independent vendor count: qualifying only when corroborated (aggregation).
+            return IOCVerdict(self.name, ioc_type, value, True, 90, detail, checked=True, vendor_count=None, qualifying=False)
 
         except httpx.ConnectError as e:
             # Covers SSL certificate failures and general connection issues

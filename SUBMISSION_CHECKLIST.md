@@ -1,27 +1,26 @@
-# Guardian.AI — HackMatrix Submission Checklist
+# Guardian.AI — Submission Checklist (HackMatrix)
 
-The nine deliverables from the problem statement. **Do not invent the submission format** — check the HackMatrix dashboard for the exact format and portal fields before submitting.
+**Deadline:** Tue 10 Nov 2026, 10:00 PM IST. **Do not invent the submission format** — confirm the exact upload/link fields and format on the HackMatrix dashboard before submitting.
 
-| # | Deliverable | Status | Notes / next step |
-|---|-------------|--------|-------------------|
-| 1 | Working prototype | **Ready (local)** | React + Vite frontend, FastAPI backend, SQLite, Hardhat local chain. Run backend, frontend, and `npx hardhat node` + deploy; see `README.md` setup. |
-| 2 | Public GitHub repo | **Ready** | Remote `origin` points to the configured GitHub repo (verified via `git remote -v`). Verify the repo is public on GitHub and the latest commit is pushed (`git log --oneline -5`). |
-| 3 | AI demo | **Ready** | AI verdict/explanation shown in report UI (Groq-backed when configured; rule-based fallback when unavailable). Demo step 3 in `DEMO_SCRIPT.md` covers message analysis. |
-| 4 | Cybersecurity demo including TLS | **Ready** | URL investigation covers headers/URLs/IOCs; TLS/Website Security evidence shown in report. Demo steps 1–2 in `DEMO_SCRIPT.md` (“a valid certificate does not mean the website is safe”). |
-| 5 | Web3 demo (testnet or reproducible local chain + contract address + transaction reference) | **Ready (reproducible local chain)** | Contract: `0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9` (Hardhat localhost, chain 31337; redeployed this run — see `backend/contract.json`). Example tx: `0xa715dd711eebe9702163db7fd2f4e884cb9628427ce57bb498dc1159a205bd6a` (report `8f410c34-9919-4473-8018-95549c586022`, verify passed). **Note:** local chain is ephemeral — keep node running for demo and re-record tx/address if restarted. |
-| 6 | Verification evidence | **Ready** | On-chain register+verify passed (exists, verdict `Low Risk`); see `TESTING.md` “Web3 verification evidence”. |
-| 7 | Technical documentation | **Ready** | `README.md` (architecture, setup, API endpoints, six test cases, Web3 section) + project theory document in `docs/` (kept at its original filename/path). |
-| 8 | Testing report | **Ready** | `TESTING.md` with six cases + actuals, pytest 98 passed, `vite build` success, per-endpoint status, risk-class audit. |
-| 9 | Live demo | **TODO (user action)** | Record the 2-minute demo using `DEMO_SCRIPT.md`. **Next step:** start backend/frontend/hardhat, record at 1920×1080 with no secrets visible, follow the 5 shots + closing line, then upload per the HackMatrix dashboard format. |
+## Deliverables (9)
 
-## Final user actions (after this repo state)
+| # | Deliverable | Status | Evidence / next step |
+|---|---|---|---|
+| 1 | Working prototype | **READY (local) / VERIFY (hosted)** | Backend (FastAPI) + frontend (React/Vite) + optional Hardhat chain run locally; `vite build` succeeds; core flows verified (investigate, analyze-message, register/verify). *Next:* ensure hosted URLs are live and warmed (Render sleeps on free tier) before demo. |
+| 2 | Public GitHub repo | **READY** | Remote: `origin https://github.com/sarveshdabke/PhishGuard-AI.git` (push/fetch). *Next:* confirm repo visibility is public on GitHub; push latest commit (this Prompt 7 final). |
+| 3 | AI demo | **READY** | Deterministic checks + explainable AI verdict path (Groq-backed when `GROQ_API_KEY` is configured). *Next:* set a valid `GROQ_API_KEY` in the demo environment so the live LLM explanation (not fallback) is shown; do not expose the key on screen. |
+| 4 | Cybersecurity demo including TLS | **READY** | Link investigation covers domain/redirect/DNS/reputation and TLS/certificate context; homograph detection verified (`https://аpple.com`, Cyrillic `а` → homograph indicator). *Next:* in the demo, open the TLS/certificate section and state “a valid certificate does not mean the website is safe.” |
+| 5 | Web3 demo (testnet or reproducible local chain + contract address + transaction reference) | **PARTIAL** | **Reproducible local chain verified:** Hardhat localhost (`chain_id=31337`), contract `0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9`, register tx `0x781240ba01ff5b134e2de6e32a876309f2591debd37817a84627e7a0d6657749`, verify `exists=true`. **TODO (testnet, recommended for submission):** run Prompt 8 Sepolia deploy (`cd blockchain && npx hardhat run scripts/deploy.js --network sepolia` with funded deployer in `blockchain/.env`), record the **Sepolia contract address** and deployment/registration **Etherscan transaction link**, set Render/backend `WEB3_RPC_URL`+`PRIVATE_KEY` (never commit), update README Web3 section and `backend/contract.json` as appropriate. |
+| 6 | Verification evidence | **READY** | `TESTING.md` (6 cases with actuals, pytest `108 passed`, `vite build` success, endpoint status, on-chain register/verify output). *Next:* capture screenshots/short clip if the dashboard requires visual evidence. |
+| 7 | Technical documentation | **READY** | `README.md` (architecture, setup, endpoints, 6 test cases, Web3), `DEPLOY.md`, `docs/` (legacy theory doc filename retained). *Next:* fill README Sepolia values after testnet deploy. |
+| 8 | Testing report | **READY** | `TESTING.md`. |
+| 9 | Live demo | **TODO (user action)** | Record the 2-minute demo using `DEMO_SCRIPT.md`. *Next:* record at 1920×1080 with backend+frontend+Hardhat (or Sepolia) running, **no keys/passwords visible**; upload per the HackMatrix dashboard format. |
 
-1. Record the 2-minute demo video using `DEMO_SCRIPT.md`.
-2. Check the **HackMatrix dashboard** for the exact submission format (fields, links, upload types) — do not guess.
-3. Submit before **Tue 10 Nov 2026, 10pm IST**.
+## Pre-submit checks
 
-## Integrity notes
-
-- Verdict rules, 0–10 numeric scale, and risk-class mapping unchanged (only the five allowed `risk_class` values are returned).
-- No paid APIs or new packages added.
-- `LICENSE` file: **none present at repo root** (not created/modified). The single attribution line at the top of `README.md` is preserved.
+- [ ] `cd backend && python -m pytest tests/ -q` green.
+- [ ] `cd frontend && npm run build` succeeds.
+- [ ] Repo-wide legacy-name sweep reviewed (only allowed/operational exceptions reported in the Prompt 7 final reply: README attribution line kept as required, legacy doc filename in link retained because files/routes must not be renamed, real Render hostname in keep-alive workflow retained as the actual deployed service, local untracked `.db` artifact if present). **No LICENSE file exists** in repo — report noted.
+- [ ] `.env` / private keys **not** committed; dashboard secrets set.
+- [ ] **Exact submission format checked on HackMatrix dashboard** (links/files/fields) — do not guess.
+- [ ] Submit before **Tue 10 Nov 2026, 10:00 PM IST**.

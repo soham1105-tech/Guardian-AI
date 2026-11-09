@@ -1,46 +1,42 @@
-# Guardian.AI — Testing Report (Prompt 7)
+# Guardian.AI — Testing Report
 
-Environment: local workspace `D:\hackmatrix\guardian-ai` (repo folder as checked out). Backend on `http://127.0.0.1:8000` (uvicorn, restarted to load fresh `backend/contract.json`), frontend built with Vite, Hardhat local node on `http://127.0.0.1:8545` with `ThreatRegistry` deployed.
+Verified: 2026-11-09 (local). Commands run in `cmd`/bash from the repo root unless noted. The backend was started with `CORS_ORIGINS="http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174"` and `WEB3_RPC_URL="http://127.0.0.1:8545"` for API/on-chain checks.
 
-All `risk_class` values observed across the six cases and the on-chain verify verdict are in the allowed set: **Low Risk / Suspicious / High Risk / Confirmed Malicious / Inconclusive**.
+## Six test cases
 
-## Six required test cases
-
-| # | Case | Input | Expected | Actual result | `risk_class` |
-|---|------|-------|----------|---------------|--------------|
-| 1 | Suspicious (phishing URL) | `POST /api/investigate` `{"url":"https://testsafebrowsing.appspot.com/s/phishing.html"}` | High Risk or Confirmed Malicious | **PASS** — `risk_score=6.9` | `High Risk` |
-| 2 | Suspicious (homograph) | `POST /api/investigate` `{"url":"https://аpple.com"}` (Cyrillic `а` U+0430) | Flagged, homograph indicator present | **PASS** — `risk_score=5.8`, homograph/punycode/confusable indicator present in report (`has_homograph=True`) | `High Risk` |
-| 3 | Suspicious (fake SBI KYC SMS) | `POST /api/analyze-message` `{"text":"Dear customer, your SBI account will be blocked today. Verify KYC now at http://sbi-kyc-verify.xyz/login"}` | High Risk or Confirmed Malicious | **PASS** — `risk_score=7.9` | `High Risk` |
-| 4 | Benign | `POST /api/investigate` `{"url":"https://www.google.com"}` | Low Risk | **PASS** — `risk_score=0.0` | `Low Risk` |
-| 5 | Benign | `POST /api/investigate` `{"url":"https://www.github.com"}` | Low Risk | **PASS** — `risk_score=0.0` | `Low Risk` |
-| 6 | Benign (real bank, no false positive) | `POST /api/investigate` `{"url":"https://www.sbi.co.in"}` | Low Risk | **PASS** — `risk_score=0.0` | `Low Risk` |
+| # | Case | Exact input | Expected | Actual |
+|---|---|---|---|---|
+| 1 | Suspicious link (Google Safe Browsing test page) | `POST /api/investigate` `{"url":"https://testsafebrowsing.appspot.com/s/phishing.html"}` | High Risk or Confirmed Malicious | **PASS** — `risk_class=Confirmed Malicious`, `verdict=Confirmed Malicious`, `risk_score=10.0` |
+| 2 | Suspicious link (IDN homograph, Cyrillic `а` U+0430) | `POST /api/investigate` `{"url":"https://аpple.com"}` (first `a` is Cyrillic) | Flagged; homograph indicator present | **PASS** — `risk_class=Confirmed Malicious`, `verdict=Confirmed Malicious`, `risk_score=10.0`; homograph indicator present (`type=homograph`, `value=xn--pple-43d.com`, detail notes non-ASCII look-alike `а` / punycode / IDN spoofing) |
+| 3 | Suspicious bank SMS (fake SBI KYC) | `POST /api/analyze-message` `{"text":"Dear customer, your SBI account will be blocked today. Verify KYC now at http://sbi-kyc-verify.xyz/login"}` | High Risk or Confirmed Malicious | **PASS** — `risk_class=High Risk`, `verdict=High Risk`, `risk_score=7.9` |
+| 4 | Benign | `POST /api/investigate` `{"url":"https://www.google.com"}` | Low Risk | **PASS** — `risk_class=Low Risk`, `verdict=Low Risk`, `risk_score=0.0`. Note (Prompt 8b): a live single-vendor reputation flag (e.g. VT 1/92) is recorded as an informational note (“1 vendor flagged…, below the evidence threshold of 2 — not counted toward the score”) and does **not** count as evidence or trigger Confirmed Malicious. |
+| 5 | Benign | `POST /api/investigate` `{"url":"https://www.github.com"}` | Low Risk | **PASS** — `risk_class=Low Risk`, `verdict=Low Risk`, `risk_score=0.0` |
+| 6 | Benign (real bank, no false positive) | `POST /api/investigate` `{"url":"https://www.sbi.co.in"}` | Low Risk | **PASS** — `risk_class=Low Risk`, `verdict=Low Risk`, `risk_score=0.0` |
 
 ## Automated tests
 
-- **Backend pytest** (from `backend/`, `.venv`): `python -m pytest tests/ -q` → **98 passed, 24 warnings in 16.55s** (exit 0). Warnings are pre-existing deprecations (`starlette.testclient`/httpx, `datetime.utcnow()` in existing modules, FastAPI `on_event`) — no verdict/risk logic changed, no suppressions added.
-- **Frontend build** (from `frontend/`): `npm run build` → **success** (`vite v8.2.2`, 97 modules, `dist/assets/index-Cuo97JMy.js` 343.79 kB gzip 106.99 kB, built in ~279ms).
+- **Backend (pytest):** `cd backend && python -m pytest tests/ -q` → **`108 passed, 28 warnings in 20.11s`** (full suite green; was 98 before Prompt 8b). Warnings are pre-existing deprecations (`httpx` testclient, `datetime.utcnow`, FastAPI `on_event`), not test failures.
+- **Frontend (Vite build):** `cd frontend && npm run build` → **success** (`vite v8.2.2`, 97 modules transformed, `dist/assets/index-*.js` ~344 kB gzip ~107 kB, built in ~276 ms).
 
-## Endpoint status (one line each)
+## Endpoint status (verified)
 
 | Endpoint | Method | Status | Notes |
-|----------|--------|--------|-------|
-| `/api/investigate` | POST | **OK** | Returns report with `risk_class` in allowed set; verified on cases 1,2,4,5,6. |
-| `/api/analyze-message` | POST | **OK** | Verified on fake SBI KYC SMS (case 3). |
-| `/api/upload` (email `.eml`) | POST | **OK (code path preserved; exercised in prior prompts)** | `.eml` flow unchanged by Prompt 7; not re-uploaded in this run. |
-| `/api/reports` (reports list) | GET | **OK (registered router; exercised via app/tests)** | Backend reports router active; list/detail exercised in prior runs. |
-| `/api/reports/{id}/register` | POST | **OK** | Anchored report `8f410c34-9919-4473-8018-95549c586022`; returned `tx_hash`, `contract_address`, `report_hash`. |
-| `/api/reports/{id}/verify` | GET | **OK** | `exists=True`, `verdict="Low Risk"`, timestamp/submitter returned for the registered report. |
-
-## Web3 verification evidence (this run)
-
-- **Contract address:** `0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9` (chain 31337, localhost; redeployed to fresh `npx hardhat node` — address written to `backend/contract.json`)
-- **Report registered:** `8f410c34-9919-4473-8018-95549c586022` (Low Risk, github.com)
-- **Transaction hash:** `0xa715dd711eebe9702163db7fd2f4e884cb9628427ce57bb498dc1159a205bd6a`
-- **Report hash:** `0xee81b1d419c0bbdd0a535dcb07b28e62ecd4c02b95651b85581b6bf080488f1f`
-- **Verify:** `exists=True`, `timestamp=1794203618`, `submitter=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266`, `verdict="Low Risk"`
-
-> Local Hardhat chain is ephemeral; a restarted node invalidates prior on-chain state. Keep the node running for demos and record the tx hash/address you show.
+|---|---|---|---|
+| `/api/investigate` | POST | **OK** | Link/domain investigation; returns report with `risk_class`/`verdict`/`risk_score` (0–10) and `checks` (cases 1,2,4,5,6). |
+| `/api/analyze-message` | POST | **OK** | SMS/text/WhatsApp-style message analysis (case 3). |
+| `/api/upload` | POST | **OK (implemented)** | `.eml` upload; exercised in the existing .eml flow/UI (not re-curl’d here to avoid mutating fixtures). |
+| `/api/analyze/{email_id}` | POST | **OK (implemented)** | Email analysis; part of the .eml flow. |
+| `/api/reports` | GET | **OK (implemented)** | Reports/investigations list (powers dashboard history). |
+| `/api/reports/{report_id}` | GET | **OK (implemented)** | Single report. |
+| `/api/reports/{report_id}/register` | POST | **OK** | On-chain registration (local Hardhat). Registered report `3d7fecbc-8837-452b-a085-7696b247231c` → `tx_hash=0x781240ba01ff5b134e2de6e32a876309f2591debd37817a84627e7a0d6657749`, `contract=0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9`, `chain_id=31337`, `exists=true`, `verdict=Confirmed Malicious`. |
+| `/api/reports/{report_id}/verify` | GET | **OK** | Integrity/registry verification → `exists=true`, same hash/contract/submitter/verdict/timestamp. |
 
 ## Risk-class audit
 
-Allowed values (only): `Low Risk`, `Suspicious`, `High Risk`, `Confirmed Malicious`, `Inconclusive`. Observed across `/api/investigate`, `/api/analyze-message`, and on-chain verify verdict in this run: **Low Risk, High Risk** only. No out-of-spec values (e.g. `SAFE`, `HIGH`, `SUSPICIOUS`) observed; no mapping changes required.
+Allowed values only: **Low Risk, Suspicious, High Risk, Confirmed Malicious, Inconclusive**. Across the six cases above: `Low Risk` (google, github, sbi.co.in), `High Risk` (SBI KYC SMS), `Confirmed Malicious` (phishing test, homograph). Class is determined by score + qualifying threat-intel match (Prompt 8b); no `SAFE/HIGH/SUSPICIOUS/CRITICAL` user-facing risk-class values observed.
+
+## Caveats
+
+- Live threat-intel/network results can vary by provider availability and time; Prompt 8b ensures a single-vendor flag is informational and cannot produce a false Confirmed Malicious.
+- On-chain register/verify above used the **local Hardhat** chain (31337). A manual Sepolia deployment (real contract address + Etherscan tx) is a user action — see README and `DEPLOY.md`.
+- Browser console/network visual checks (zero errors, empty/loading/error states) were not captured as screenshots in this run; the UI includes busy/disabled submit states and error messaging — verify in a browser with backend+frontend+Hardhat running before demo/submission.

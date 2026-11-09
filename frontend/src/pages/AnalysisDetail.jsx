@@ -181,12 +181,20 @@ function AnalysisDetail() {
   const [data, setData] = useState(null);
   const [activeTab, setActiveTab] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
-  useEffect(() => {
+  const load = () => {
+    setLoading(true);
+    setLoadError("");
     getAnalysisById(emailId)
       .then(setData)
-      .catch(console.error)
+      .catch((err) => setLoadError(err?.response?.data?.detail || err?.message || "Failed to load report."))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [emailId]);
 
   if (loading) {
@@ -204,10 +212,13 @@ function AnalysisDetail() {
         <div style={{ display: "grid", placeItems: "center", marginBottom: 12 }}>
           <Icon name="alert" size={20} />
         </div>
-        <h1 style={{ fontSize: 18, fontWeight: 600 }}>Report not found</h1>
+        <h1 style={{ fontSize: 18, fontWeight: 600 }}>{loadError ? "Unable to load report" : "Report not found"}</h1>
         <p style={{ marginTop: 8, color: "var(--text-muted)", fontSize: 14 }}>
-          This investigation is not in the local report store.
+          {loadError || "This investigation is not in the local report store."}
         </p>
+        <div style={{ marginTop: 16, display: "flex", justifyContent: "center", gap: 10 }}>
+          <button type="button" className="btn btn-secondary btn-sm" onClick={load}>Retry</button>
+        </div>
         <Link to="/" className="btn btn-secondary" style={{ marginTop: 16, display: "inline-flex" }}>
           <Icon name="arrow-left" size={14} /> Back
         </Link>

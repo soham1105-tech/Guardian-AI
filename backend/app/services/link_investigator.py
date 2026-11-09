@@ -32,6 +32,7 @@ from app.services.ssrf_guard import (
     validate_target,
 )
 from app.services.threat_intel.provider_manager import check_iocs_batch, summarize_threat_intel
+from app.services.threat_intel.evidence import has_qualifying_ti_match, qualifying_for_ioc, parse_vendor_count
 from app.services.tls_analyzer import VALID_CERT_NOTE, analyze_tls
 from app.services.url_analyzer import analyze_single_url
 from app.services.url_normalizer import InvalidURLError, normalize_url
@@ -50,7 +51,7 @@ REDIRECT_DOWNGRADE_SCORE = 20
 REDIRECT_LIMIT_SCORE = 25
 REDIRECT_LOOP_SCORE = 30
 REDIRECT_BLOCKED_SCORE = 50
-REPUTATION_MALICIOUS_FLOOR = 85     # a *scan-based* verdict => CRITICAL
+REPUTATION_MALICIOUS_FLOOR = 85     # a *qualifying* scan-based verdict => strong signal
 OTX_PULSE_SCORE = 20                # community-pulse mentions alone are weak evidence
 EXTRA_SIGNAL_WEIGHT = 0.2           # weaker signals add to, never mask, the strongest one
 
@@ -60,11 +61,23 @@ EXTRA_SIGNAL_WEIGHT = 0.2           # weaker signals add to, never mask, the str
 # constantly, so it corroborates but never confirms on its own.
 SCAN_CONFIRMING_PROVIDERS = {"VirusTotal", "URLhaus", "URLScan.io", "AbuseIPDB"}
 
-def risk_class_for(score: float, has_threat_intel: bool = False) -> str:
+def risk_class_for(
+    score: float,
+    has_qualifying_threat_intel: bool = False,
+    no_usable_data: bool = False,
+    **_kwargs,
+) -> str:
     """
-    Maps the 0-100 score onto the 5-class risk_class (Prompt 3 thresholds,
-    unchanged). Shared by the link and message pipelines so both always agree.
+    Maps the 0-100 score to the 5-class risk_class. Class comes ONLY from the score
+    (0-10 scale) and whether there is a *qualifying* threat-intel match (>=2 independent
+    vendor flags, or a corroborated no-vendor-count source). A single-vendor flag never
+    qualifies and never triggers Confirmed Malicious. AI never decides the class.
     """
+    # Back-compat: older callers pass has_threat_intel=...
+    if "has_threat_intel" in _kwargs and not has_qualifying_threat_intel:
+        has_qualifying_threat_intel = bool(_kwargs["has_threat_intel"])
+    if no_usable_data:
+        return "Inconclusive"
     score_10 = round(score / 10, 1)
     if score_10 <= 2:
         return "Low Risk"
@@ -72,7 +85,8 @@ def risk_class_for(score: float, has_threat_intel: bool = False) -> str:
         return "Suspicious"
     if score_10 <= 8:
         return "High Risk"
-    return "Confirmed Malicious" if has_threat_intel else "High Risk"
+    # 9-10: Confirmed Malicious ONLY with a qualifying TI match.
+    return "Confirmed Malicious" if has_qualifying_threat_intel else "High Risk"
 
 
 VERDICT_BY_CATEGORY = {
@@ -274,29 +288,40 @@ def _redirect_findings(chain: dict) -> tuple[int, list[dict], list[str]]:
     return score, indicators, evidence
 
 
+def _is_below_threshold(verdict: dict) -> bool:
+    """Single-vendor/count flag below the evidence threshold (informational only)."""
+    if not verdict.get("checked"):
+        return False
+    vc = verdict.get("vendor_count")
+    if vc is None:
+        vc = parse_vendor_count(verdict.get("provider") or "", verdict.get("detail") or "")
+    return vc == 1
+
+
 def _reputation_strength(results: dict) -> tuple[bool, int]:
     """
-    Splits reputation findings into scan-confirmed vs merely corroborating.
-
-    Returns (scan_confirmed, reputation_score). A scan-based provider verdict
-    (VirusTotal / URLhaus / URLScan / AbuseIPDB) is treated as confirmation and
-    floors the risk score at CRITICAL; AlienVault OTX only reports community
-    pulses, so on its own it contributes OTX_PULSE_SCORE.
+    Uses only *qualifying* TI evidence for score contribution.
+    Returns (has_qualifying_scan_verdict, reputation_score).
+    A qualifying scan-based verdict (vendor-count >= 2, or corroborated no-vendor-count
+    scan source) floors at REPUTATION_MALICIOUS_FLOOR. Single-vendor flags and
+    uncorroborated no-vendor-count positives contribute 0.
     """
-    confirming = 0
-    corroborating = 0
-    for verdicts in results.values():
+    best_confirming = 0
+    best_corroborating = 0
+    for verdicts in (results or {}).values():
+        qset = {id(v) for v in qualifying_for_ioc(verdicts)}
         for verdict in verdicts:
-            if not (verdict.get("checked") and verdict.get("malicious")):
+            if id(verdict) not in qset:
                 continue
-            if verdict.get("provider") in SCAN_CONFIRMING_PROVIDERS:
-                confirming = max(confirming, int(verdict.get("confidence") or 0))
+            conf = int(verdict.get("confidence") or 0)
+            if verdict.get("provider") in SCAN_CONFIRMING_PROVIDERS or (verdict.get("vendor_count") or 0) >= 2:
+                best_confirming = max(best_confirming, conf)
             else:
-                corroborating = max(corroborating, int(verdict.get("confidence") or 0))
+                best_corroborating = max(best_corroborating, conf)
 
-    if confirming:
-        return True, max(REPUTATION_MALICIOUS_FLOOR, confirming)
-    if corroborating:
+    if best_confirming:
+        return True, max(REPUTATION_MALICIOUS_FLOOR, best_confirming)
+    if best_corroborating:
         return False, OTX_PULSE_SCORE
     return False, 0
 
@@ -540,27 +565,44 @@ async def investigate_link(raw_url: str) -> dict:
 
     # 6. reputation
     rep_summary = reputation["summary"]
+    qualifying_ti = has_qualifying_ti_match(reputation["results"])
     unavailable: list[str] = []
     for ioc_value, verdicts in reputation["results"].items():
+        qset = {id(v) for v in qualifying_for_ioc(verdicts)}
         for verdict in verdicts:
             if not verdict.get("checked"):
                 if verdict["provider"] not in unavailable:
                     unavailable.append(verdict["provider"])
                 continue
-            if verdict.get("malicious"):
-                confirmed_here = verdict["provider"] in SCAN_CONFIRMING_PROVIDERS
+            below = _is_below_threshold(verdict)
+            is_qual = id(verdict) in qset
+            if below:
+                evidence_item(
+                    "Reputation",
+                    f"{verdict['provider']}: {verdict['detail']} ({ioc_value})",
+                    "info",
+                    "Below the evidence threshold of 2 — not counted toward the score and cannot trigger Confirmed Malicious.",
+                )
+                continue
+            if verdict.get("malicious") and is_qual:
+                scan_like = verdict["provider"] in SCAN_CONFIRMING_PROVIDERS or (verdict.get("vendor_count") or 0) >= 2
                 indicator(
                     "reputation",
                     f"{verdict['provider']} flagged {ioc_value}: {verdict['detail']}",
-                    "critical" if confirmed_here else "medium",
+                    "critical" if scan_like else "medium",
                 )
                 evidence_item(
                     "Reputation",
                     f"{verdict['provider']} flagged {ioc_value} — {verdict['detail']}",
-                    "critical" if confirmed_here else "medium",
-                    f"Confidence {verdict['confidence']}%"
-                    if confirmed_here
-                    else "Community-pulse mention only — corroborating evidence, not a scan verdict.",
+                    "critical" if scan_like else "medium",
+                    f"Confidence {verdict['confidence']}%" if scan_like else "Corroborating qualifying evidence.",
+                )
+            elif verdict.get("malicious") and not is_qual:
+                evidence_item(
+                    "Reputation",
+                    f"{verdict['provider']}: {verdict['detail']} ({ioc_value})",
+                    "low",
+                    "Positive match from a source with no independent vendor count — requires corroboration from a second independent source to count as evidence.",
                 )
             else:
                 evidence_item(
@@ -568,7 +610,7 @@ async def investigate_link(raw_url: str) -> dict:
                     f"{verdict['provider']}: {verdict['detail']} ({ioc_value})",
                     "info",
                 )
-    if unavailable and not rep_summary["malicious_ioc_count"]:
+    if unavailable and not rep_summary.get("malicious_ioc_count"):
         evidence_item(
             "Reputation",
             "No reputation source could confirm or clear this URL: " + ", ".join(sorted(unavailable)),
@@ -576,7 +618,7 @@ async def investigate_link(raw_url: str) -> dict:
             "Provider calls failed or no API key is configured — the verdict below is heuristic-only.",
         )
 
-    scan_confirmed, reputation_score = _reputation_strength(reputation["results"])
+    scan_confirmed, reputation_score = _reputation_strength(reputation["results"])  # qualifying only
 
     # --- risk ---
     components = {
@@ -588,7 +630,7 @@ async def investigate_link(raw_url: str) -> dict:
         "reputation_score": reputation_score,
     }
     score = _combine(components)
-    if scan_confirmed:
+    if scan_confirmed and qualifying_ti:
         score = max(score, REPUTATION_MALICIOUS_FLOOR)
     score = min(100, score)
     category = _categorize(score)
@@ -943,7 +985,9 @@ async def investigate_link(raw_url: str) -> dict:
     # These findings are deterministic - the AI may explain them, never decide them.
     checks["website_security"] = website_security
 
-    recommendations = _recommendations(category, checks)
+    # Deterministic class: score (0-10) + qualifying TI match only. AI never decides.
+    risk_class = risk_class_for(score, has_qualifying_threat_intel=qualifying_ti)
+    verdict = risk_class
 
     ai_evidence = {
         "investigation_type": "standalone_url",
@@ -970,6 +1014,7 @@ async def investigate_link(raw_url: str) -> dict:
         "final_url": chain["final_url"],
         "url_heuristic_reasons": static_reasons,
         "threat_intel_malicious_count": rep_summary["malicious_ioc_count"],
+        "threat_intel_qualifying_match": qualifying_ti,
         "threat_intel_scan_confirmed": scan_confirmed,
         "threat_intel_malicious_iocs": rep_summary["malicious_iocs"],
         "threat_intel_unavailable_providers": sorted(unavailable),
@@ -978,19 +1023,13 @@ async def investigate_link(raw_url: str) -> dict:
     }
     ai_verdict = get_ai_verdict(ai_evidence)
 
+    recommendations = _recommendations(category, checks)
     summary_line = (
-        f"{VERDICT_BY_CATEGORY[category]} ({score}/100) — {len(indicators)} indicator(s), "
+        f"{verdict} ({score}/100) — {len(indicators)} indicator(s), "
         f"{chain['redirect_count']} redirect(s), "
         f"{'DNS resolved' if dns_checks['resolved'] else 'DNS did not resolve'}, "
         f"TLS {tls_checks.get('status_label') or 'not checked'}"
     )
-
-    # Map the 0-100 score to the 5-class risk_class (Prompt 3 mapping)
-    risk_class = risk_class_for(
-        score, has_threat_intel=(reputation.get("summary", {}).get("malicious_ioc_count", 0) > 0)
-    )
-
-    # Website security assessment (passive, no re-fetch)
 
     return {
         "investigation_type": "link",
@@ -998,7 +1037,7 @@ async def investigate_link(raw_url: str) -> dict:
         "website_security": website_security,
         "risk_class": risk_class,
         # summary fields (0-10 score mirrors risk_report.score, which stays 0-100)
-        "verdict": VERDICT_BY_CATEGORY[category],
+        "verdict": verdict,
         "risk_score": round(score / 10, 1),
         "summary": summary_line,
         "indicators": indicators,

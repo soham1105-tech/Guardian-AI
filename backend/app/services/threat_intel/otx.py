@@ -2,6 +2,7 @@ import httpx
 
 from app.config import settings
 from .base import ThreatIntelProvider, IOCVerdict
+from .evidence import VENDOR_EVIDENCE_THRESHOLD
 
 
 class OTXProvider(ThreatIntelProvider):
@@ -28,14 +29,22 @@ class OTXProvider(ThreatIntelProvider):
             data = resp.json()
 
             pulse_count = data.get("pulse_info", {}).get("count", 0)
-            is_malicious = pulse_count > 0
             confidence = min(pulse_count * 20, 100)
-            detail = (
-                f"Found in {pulse_count} community threat-intel pulse(s)"
-                if pulse_count else "No threat pulses found"
-            )
 
-            return IOCVerdict(self.name, ioc_type, value, is_malicious, confidence, detail)
+            if pulse_count <= 0:
+                return IOCVerdict(self.name, ioc_type, value, False, 0, "No threat pulses found", checked=True)
+            if pulse_count == 1:
+                return IOCVerdict(
+                    self.name, ioc_type, value, False, 0,
+                    f"1 community threat-intel pulse (below the evidence threshold of {VENDOR_EVIDENCE_THRESHOLD}) — not counted toward the score",
+                    checked=True, vendor_count=1, qualifying=False,
+                )
+
+            detail = f"Found in {pulse_count} community threat-intel pulse(s)"
+            return IOCVerdict(
+                self.name, ioc_type, value, True, confidence, detail,
+                checked=True, vendor_count=pulse_count, qualifying=True,
+            )
 
         except httpx.HTTPStatusError as e:
             status = e.response.status_code

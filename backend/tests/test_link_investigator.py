@@ -200,26 +200,30 @@ def test_redirect_findings_score_unrelated_domain_and_downgrade():
 # Scoring
 # --------------------------------------------------------------------------
 
-def test_otx_pulse_mentions_do_not_confirm_malicious_on_their_own():
+def test_single_pulse_otx_is_below_threshold_and_does_not_count():
     results = {
-        "youtu.be": [
-            {"provider": "AlienVault OTX", "malicious": True, "confidence": 100,
-             "detail": "Found in 50 community threat-intel pulse(s)", "checked": True}
+        "example.com": [
+            {"provider": "AlienVault OTX", "malicious": False, "confidence": 0,
+             "detail": "1 community threat-intel pulse (below the evidence threshold of 2) — not counted toward the score",
+             "checked": True, "vendor_count": 1, "qualifying": False}
         ]
     }
     confirmed, score = li._reputation_strength(results)
 
     assert confirmed is False
-    assert score == li.OTX_PULSE_SCORE
+    assert score == 0
 
 
-def test_scan_based_provider_verdict_confirms_malicious():
+def test_qualifying_scan_provider_verdict_confirms_malicious():
+    # URLhaus has no vendor count; it qualifies when corroborated by a second independent source.
     results = {
         "https://evil.example/payload": [
             {"provider": "URLhaus", "malicious": True, "confidence": 90,
-             "detail": "Listed in URLhaus as 'malware_download'", "checked": True},
-            {"provider": "AlienVault OTX", "malicious": False, "confidence": 0,
-             "detail": "No threat pulses found", "checked": True},
+             "detail": "Listed in URLhaus as 'malware_download' (status: online)", "checked": True,
+             "vendor_count": None, "qualifying": False},
+            {"provider": "VirusTotal", "malicious": True, "confidence": 10,
+             "detail": "4/92 vendors flagged as malicious", "checked": True,
+             "vendor_count": 4, "qualifying": True},
         ]
     }
     confirmed, score = li._reputation_strength(results)
@@ -465,7 +469,8 @@ def test_expired_certificate_raises_report_to_high_risk(monkeypatch):
     assert any(e["source"] == "TLS certificate" for e in report["evidence"])
 
 
-def test_compromised_ca_floor_is_confirmed_malicious(monkeypatch):
+def test_compromised_ca_is_high_risk_without_qualifying_ti_match(monkeypatch):
+    # Spec: 9-10 without a qualifying TI match => High Risk (class is score+TI only).
     compromised = _tls_stub(
         status="compromised_ca",
         score=100,
@@ -490,7 +495,8 @@ def test_compromised_ca_floor_is_confirmed_malicious(monkeypatch):
     report = asyncio.run(investigate_link("https://example.com/"))
 
     assert report["risk_report"]["category"] == "CRITICAL"
-    assert report["verdict"] == "Confirmed Malicious"
+    assert report["verdict"] == "High Risk"
+    assert report["risk_class"] == "High Risk"
 
 
 # --------------------------------------------------------------------------

@@ -3,12 +3,29 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+_DEFAULT_CORS_ORIGINS = [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
+]
+
+
+def _cors_origins() -> list:
+    """Allowed origins from CORS_ORIGINS (comma-separated). Defaults keep local dev."""
+    raw = os.getenv("CORS_ORIGINS", "").strip()
+    if not raw:
+        return list(_DEFAULT_CORS_ORIGINS)
+    origins = [o.strip() for o in raw.split(",") if o.strip()]
+    return origins or list(_DEFAULT_CORS_ORIGINS)
+
+
 class Settings:
     APP_NAME: str = "Guardian.AI"
     APP_VERSION: str = "0.2.0"
 
     # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./phishguard.db")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./guardian.db")
 
     # Upload
     UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", "./uploads")
@@ -48,14 +65,8 @@ class Settings:
     THRESHOLD_SUSPICIOUS: int = 60
     THRESHOLD_HIGH: int = 80
 
-    # CORS
-    FRONTEND_ORIGINS: list = [
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:5174",
-        "https://phishguard-ai-coral-beta.vercel.app",
-    ]
+    # CORS — CORS_ORIGINS env var (comma-separated) overrides; defaults keep local dev.
+    FRONTEND_ORIGINS: list = _cors_origins()
 
 
 settings = Settings()

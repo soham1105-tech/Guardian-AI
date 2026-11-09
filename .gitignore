@@ -99,7 +99,7 @@ htmlcov/
 
 
 # =========================================================
-# PhishGuard AI specific
+# Guardian.AI specific
 # =========================================================
 
 # Uploaded .eml files should never be committed (may contain

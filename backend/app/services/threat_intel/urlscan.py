@@ -2,6 +2,7 @@ import httpx
 
 from app.config import settings
 from .base import ThreatIntelProvider, IOCVerdict
+from .evidence import VENDOR_EVIDENCE_THRESHOLD
 
 
 class URLScanProvider(ThreatIntelProvider):
@@ -51,7 +52,16 @@ class URLScanProvider(ThreatIntelProvider):
                     malicious_hits.append((result.get("page") or {}).get("url", value))
                     best_score = max(best_score, score)
 
-            if malicious_hits:
+            hit_count = len(malicious_hits)
+            if hit_count == 1:
+                return IOCVerdict(
+                    self.name, ioc_type, value, False, 0,
+                    f"1 urlscan.io scan returned a malicious verdict (below the evidence threshold of {VENDOR_EVIDENCE_THRESHOLD}) — not counted toward the score",
+                    checked=True,
+                    vendor_count=1,
+                    qualifying=False,
+                )
+            if hit_count >= VENDOR_EVIDENCE_THRESHOLD:
                 confidence = min(100, max(60, best_score))
                 return IOCVerdict(
                     self.name,
@@ -59,8 +69,10 @@ class URLScanProvider(ThreatIntelProvider):
                     value,
                     True,
                     confidence,
-                    f"{len(malicious_hits)} of {total} urlscan.io scan(s) returned a malicious verdict "
-                    f"(score {best_score})",
+                    f"{hit_count} of {total} urlscan.io scan(s) returned a malicious verdict (score {best_score})",
+                    checked=True,
+                    vendor_count=hit_count,
+                    qualifying=True,
                 )
 
             return IOCVerdict(

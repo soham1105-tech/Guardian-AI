@@ -252,6 +252,7 @@ function Dashboard() {
 
         {errorMsg && (
           <div
+            role="alert"
             style={{
               marginTop: 12,
               display: "flex",
@@ -268,7 +269,16 @@ function Dashboard() {
             <span style={{ marginTop: 1, flex: "none" }}>
               <Icon name="alert" size={14} />
             </span>
-            <span>{errorMsg}</span>
+            <span style={{ flex: 1 }}>{errorMsg}</span>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={handleSubmit}
+              disabled={!canSubmit}
+              style={{ flex: "none", height: 28, borderRadius: 8, padding: "0 10px", fontSize: 12 }}
+            >
+              Retry
+            </button>
           </div>
         )}
       </section>
@@ -359,9 +369,24 @@ function Dashboard() {
               padding: "28px 0",
               color: "var(--text-muted)",
               fontSize: 14,
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+              flexWrap: "wrap",
             }}
           >
-            No investigations yet. Submit an email, link, or message above to create the first report.
+            <span aria-hidden="true" style={{ color: "var(--text-muted)", flex: "none" }}>
+              <Icon name="shield" size={18} />
+            </span>
+            <span style={{ flex: "1 1 220px" }}>No investigations yet. Run your first check to create a report.</span>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={() => { setMode("link"); setErrorMsg(""); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              style={{ flex: "none" }}
+            >
+              Check a link
+            </button>
           </div>
         ) : (
           <div style={{ overflowX: "auto" }}>

@@ -28,8 +28,8 @@ class AbuseIPDBProvider(ThreatIntelProvider):
             reports = data.get("totalReports", 0)
             is_malicious = score >= 50
             detail = f"Abuse confidence {score}% based on {reports} community reports"
-
-            return IOCVerdict(self.name, ioc_type, value, is_malicious, score, detail)
+            # No independent scanner-vendor count: qualifying only when corroborated.
+            return IOCVerdict(self.name, ioc_type, value, is_malicious, score, detail, checked=True, vendor_count=None, qualifying=False if is_malicious else None)
 
         except Exception as e:
             return self._unavailable(ioc_type, value, str(e))

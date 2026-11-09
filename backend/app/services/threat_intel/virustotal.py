@@ -3,6 +3,7 @@ import httpx
 
 from app.config import settings
 from .base import ThreatIntelProvider, IOCVerdict
+from .evidence import INFORMATIONAL_SINGLE_VENDOR_NOTE, VENDOR_EVIDENCE_THRESHOLD
 
 
 class VirusTotalProvider(ThreatIntelProvider):
@@ -38,13 +39,23 @@ class VirusTotalProvider(ThreatIntelProvider):
             suspicious = stats.get("suspicious", 0)
             total = sum(stats.values()) or 1
 
-            is_malicious = malicious > 0
-            confidence = min(int(((malicious + suspicious) / total) * 100), 100)
-            detail = f"{malicious}/{total} vendors flagged as malicious"
+            raw_detail = f"{malicious}/{total} vendors flagged as malicious"
             if suspicious:
-                detail += f", {suspicious} flagged suspicious"
+                raw_detail += f", {suspicious} flagged suspicious"
+            confidence = min(int(((malicious + suspicious) / total) * 100), 100)
 
-            return IOCVerdict(self.name, ioc_type, value, is_malicious, confidence, detail)
+            if malicious == 1:
+                return IOCVerdict(
+                    self.name, ioc_type, value, False, 0,
+                    INFORMATIONAL_SINGLE_VENDOR_NOTE,
+                    checked=True, vendor_count=malicious, qualifying=False,
+                )
+
+            is_malicious = malicious >= VENDOR_EVIDENCE_THRESHOLD
+            return IOCVerdict(
+                self.name, ioc_type, value, is_malicious, confidence if is_malicious else 0, raw_detail,
+                checked=True, vendor_count=malicious, qualifying=is_malicious,
+            )
 
         except Exception as e:
             return self._unavailable(ioc_type, value, str(e))

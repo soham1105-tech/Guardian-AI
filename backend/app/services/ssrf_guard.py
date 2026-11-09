@@ -25,7 +25,7 @@ import httpx
 MAX_REDIRECTS = 5
 REQUEST_TIMEOUT = 5.0
 MAX_RESPONSE_BYTES = 1024 * 1024  # 1 MiB
-USER_AGENT = "GuardianAI-LinkInspector/1.0 (+https://github.com/sarveshdabke/PhishGuard-AI)"
+USER_AGENT = "GuardianAI-LinkInspector/1.0 (+https://github.com/sarveshdabke/guardian-ai)"
 
 REDIRECT_STATUSES = {301, 302, 303, 307, 308}
 
